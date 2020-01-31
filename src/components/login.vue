@@ -6,7 +6,8 @@
           <img src="../assets/logo.png" title="头像">
         </div>
         <!--表单区域-->
-        <el-form :model="loginForm" :rules="rules" label-width="0px" class="login_form">
+        <!--获取ref的引用，就可以获得这个表单的实例对象-->
+        <el-form ref="loginFormRef" :model="loginForm" :rules="rules" label-width="0px" class="login_form">
           <!--用户名-->
           <el-form-item prop="username">
             <el-input v-model="loginForm.username" prefixIcon="el-icon-s-custom" placeholder="请输入用户名"></el-input>
@@ -25,45 +26,43 @@
     </div>
 </template>
 <script>
-
-    import ElButton from "../../node_modules/element-ui/packages/button/src/button.vue";
-    import ElFormItem from "../../node_modules/element-ui/packages/form/src/form-item.vue";
-    import ElForm from "../../node_modules/element-ui/packages/form/src/form.vue";
-    import ElInput from "../../node_modules/element-ui/packages/input/src/input.vue";
-
-    export default {
-      components: {
-        ElInput,
-        ElForm,
-        ElFormItem,
-        ElButton},
-      name: 'login',
-      data () {
-        return {
-          loginForm: {
-            username: '',
-            password: ''
-          },
-          rules: {
-            username: [
-              { required: true, message: '请输入用户名', trigger: 'blur' }
-            ],
-            password: [
-              { required: true, message: '请输入密码', trigger: 'blur' }
-            ]
-          }
-        }
-      },
-      methods: {
-        login () {
-          console.log(this.loginForm.username, this.loginForm.password)
+  export default {
+    name: 'login',
+    data () {
+      return {
+        loginForm: {
+          username: 'sjj',
+          password: '123456'
         },
-        reset () {
-          this.loginForm.username = ''
-          this.loginForm.password = ''
+        rules: {
+          username: [
+            { required: true, message: '请输入用户名', trigger: 'blur' }
+          ],
+          password: [
+            { required: true, message: '请输入密码', trigger: 'blur' }
+          ]
         }
       }
+    },
+    methods: {
+      login () {
+        this.$refs.loginFormRef.validate(async valid => {
+          //console.log(valid)
+          if (!valid) return;
+          const { data: res } = await this.$http.post('/login', this.loginForm)
+          if (res.status !== 200) return this.$message.error("登录失败！")
+          this.$message.success("登录成功！")
+          window.sessionStorage.setItem('token', res.token)
+          this.$router.replace('/home')
+        })
+      },
+      reset () {
+        // 获得表单的引用的实例对象
+        //console.log(this.$refs.loginFormRef)
+        this.$refs.loginFormRef.resetFields()
+      }
     }
+  }
 </script>
 <style scoped>
   .login_container {
